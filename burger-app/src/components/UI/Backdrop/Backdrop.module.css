@@ -8,8 +8,8 @@
   z-index: 100;
 }
 
-@media (min-width: 500px) {
+/* @media (min-width: 500px) {
   .Backdrop {
     display: none;
   }
-}
+} */
