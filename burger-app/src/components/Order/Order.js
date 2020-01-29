@@ -8,15 +8,13 @@ const order = (props) => {
 
   const transformedIngredients = Object.keys(ingredients).map((igkey, index) => {
     if (+ingredients[igkey] > 0) {
-      return <span style={{ textTransform: 'capitalize' }} key={igkey + index}>{igkey}: ({ingredients[igkey]}), </span>
+      return <span style={{ textTransform: 'capitalize', padding: '10px', margin: '5px', border: '1px solid black' }} key={igkey + index}>{igkey}: ({ingredients[igkey]}) </span>
     } else {
       return null;
     }
   }).filter(ingredient => {
     return !!ingredient;
   });
-
-  console.log(transformedIngredients);
 
   return (
 
