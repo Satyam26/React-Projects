@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 
 import Button from '../../../components/UI/Button/Button';
 import Styles from './ContactData.module.css';
 import axios from '../../../axios-order';
 import Spinner from '../../../components/UI/Spinner/Spinner';
 import Input from '../../../components/UI/Input/Input';
+import * as actionCreators from '../../../store/actions/combinedExport';
+import withErrorHandler from '../../../hoc/withErrorHandler/withErrorHandler';
+import { checkValidity } from '../../../shared/utility';
 
 class ContactData extends Component {
 
@@ -68,7 +72,7 @@ class ContactData extends Component {
         },
         value: '',
         validation: {
-          required: true
+          required: true,
         },
         valid: false,
         touched: false,
@@ -92,16 +96,6 @@ class ContactData extends Component {
     formValid: false
   }
 
-  checkValidity(value, rules) {
-    let isValid = false;
-
-    if (rules.required) {
-      isValid = value.trim() !== '';
-    }
-
-    return isValid;
-  }
-
   orderHandler = (event) => {
     event.preventDefault();
     let validity = true;
@@ -109,7 +103,6 @@ class ContactData extends Component {
     const formData = {}
     for (let formElement in this.state.orderForm) {
 
-      console.log(this.state.orderForm[formElement].valid);
       formData[formElement] = {
         value: this.state.orderForm[formElement].value
       }
@@ -117,20 +110,16 @@ class ContactData extends Component {
 
     if (validity) {
       const order = {
-        Ingredients: this.props.ingredients,
+        Ingredients: this.props.ings,
         Price: this.props.price,
         orderDetails: formData,
+        userId: this.props.userId
       }
 
-      axios.post('/orders.json', order)
-        .then(response => {
-          this.setState({ loading: false });
-          this.props.history.push('/');
-        })
-        .catch(error => {
-          console.log(error);
-          this.setState({ loading: false });
-        })
+      // code for asynchronous call
+
+      this.props.initPurchaseBurger(order, this.props.token);
+
     } else {
       alert('please end validation');
       this.setState({ loading: false });
@@ -139,24 +128,21 @@ class ContactData extends Component {
   }
 
   inputChangeHandler = (event, id) => {
-    console.log(event.target.value);
     const updatedOrderForm = { ...this.state.orderForm };
     const updatedElement = { ...updatedOrderForm[id] };
     updatedElement.value = event.target.value;
     updatedElement.touched = true
     if (updatedElement.shouldValidate) {
-      updatedElement.valid = this.checkValidity(updatedElement.value, updatedElement.validation);
+      updatedElement.valid = checkValidity(updatedElement.value, updatedElement.validation);
     }
     updatedOrderForm[id] = updatedElement;
 
     let formValid = true;
     for (let formElement in updatedOrderForm) {
       formValid = updatedOrderForm[formElement].valid === true && formValid;
-      console.log(formValid);
     }
 
     this.setState({ formValid: formValid });
-    console.log(this.state.formValid);
     this.setState({ orderForm: updatedOrderForm })
 
   }
@@ -171,10 +157,9 @@ class ContactData extends Component {
 
       })
     }
-    console.log(!this.state.formValid)
 
     let form = <Spinner />
-    if (!this.state.loading) {
+    if (!this.props.loading) {
       form = (<form onSubmit={this.orderHandler}>
 
         {formElementArray.map(element => {
@@ -201,4 +186,21 @@ class ContactData extends Component {
   }
 
 }
-export default ContactData;
+
+const mapStateToProps = state => {
+  return {
+    ings: state.burgerReducer.ingredients,
+    price: state.burgerReducer.totalPrice,
+    loading: state.orderReducer.loading,
+    token: state.authReducer.token,
+    userId: state.authReducer.userId
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    initPurchaseBurger: (orderData, token) => { dispatch(actionCreators.initPurchaseBurger(orderData, token)) }
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(ContactData, axios));

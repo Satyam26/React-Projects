@@ -12,12 +12,12 @@ const Sidedrawer = props => {
   return (
     <Aux>
       <Backdrop show={props.show} removeBackdrop={props.clicked} />
-      <div className={[Styles.Sidedrawer, Stylename].join(' ')}>
+      <div className={[Styles.Sidedrawer, Stylename].join(' ')} onClick={props.clicked}>
         <div className={Styles.Logo}>
           <Logo />
         </div>
         <nav>
-          <NavigationItems />
+          <NavigationItems isAuth={props.isAuth} />
         </nav>
       </div>
     </Aux>
